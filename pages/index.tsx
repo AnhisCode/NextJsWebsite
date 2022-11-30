@@ -1,11 +1,13 @@
 import { Session } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import GoogleLogin from "../components/GoogleLogin";
-import Comments from "../components/Comments";
-import InputForm from "../components/inputForm";
+import Articles from "../components/Articles";
+import InputForm from "../components/ArticleInputForm";
+import { prisma } from "../lib/prisma";
+
 
 // inside home read things inside props
-const Home = ({jsonData}) => {
+const Home = ({articles}) => {
 
   const { data: session } = useSession();
 
@@ -31,7 +33,7 @@ const Home = ({jsonData}) => {
         <GoogleLogin />
       </div>
         <InputForm/>
-      <Comments jsonData={jsonData}/>
+      <Articles articles={articles}/>
     </div>
     )
   }
@@ -39,15 +41,33 @@ const Home = ({jsonData}) => {
 
 export default Home;
 
-// this gets called at every build time
-export const getStaticProps = async () => {
-  const data = await fetch('https://jsonplaceholder.typicode.com/comments?_limit=20')
-  const jsonData = await data.json()
+// // this gets called at every build time
+// export const getStaticProps = async () => {
+//   const data = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=3')
+//   const jsonData = await data.json()
 
-  // returns jsonData to this file
+//   console.log(jsonData)
+
+//   // returns jsonData to this file
+//   return {
+//     props: {
+//       jsonData
+//     }
+//   };
+// }
+
+export const getServerSideProps = async () => {
+  const articles = await prisma.article.findMany({
+    select: {
+      title: true,
+      artid: true,
+      body: true,
+    }
+  })
+
   return {
     props: {
-      jsonData
+      articles
     }
-  };
+  }
 }
